@@ -1,0 +1,8 @@
+logs
+*.log
+*.txt
+.env
+__pycache__/
+*.pkl
+workspace.py
+workspace.ipynb

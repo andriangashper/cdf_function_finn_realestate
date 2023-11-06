@@ -1,0 +1,1 @@
+With this project, we asynchronously scrape and parse Real-Estate ad listings from https://www.finn.no  
