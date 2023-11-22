@@ -1,0 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+MONGODB_USERNAME = os.getenv("MONGODB_USERNAME")
+MONGODB_PASSWORD = os.getenv("MONGODB_PASSWORD")
+MONGODB_CLUSTER_NAME = os.getenv("MONGODB_CLUSTER_NAME")
+MONGODB_COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME")
+MONGODB_DATABASE_NAME = os.getenv("MONGODB_DATABASE_NAME")

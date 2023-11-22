@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from logging_config import configure_logger
+from ..logging_config.logging_config import configure_logger
 
 logger = configure_logger(__name__)
 
@@ -38,13 +38,13 @@ async def parse_ad_page(html_text):
         nr_of_rooms = int(nr_of_rooms_tag.dd.get_text(strip=True)) if nr_of_rooms_tag else None
 
         primary_area_tag = soup.find("div", {"data-testid": "info-primary-area"})
-        primary_area = int(primary_area_tag.dd.get_text(strip=True).replace("\xa0", "").replace(" m²", "")) if primary_area_tag else None
+        primary_area = int(primary_area_tag.dd.get_text(strip=True).replace("\xa0", "").split()[0]) if primary_area_tag else None
 
         usable_area_tag = soup.find("div", {"data-testid": "info-usable-area"})
-        usable_area = int(usable_area_tag.dd.get_text(strip=True).replace("\xa0", "").replace(" m²", "")) if usable_area_tag else None
+        usable_area = int(usable_area_tag.dd.get_text(strip=True).replace("\xa0", "").split()[0]) if usable_area_tag else None
 
         plot_area_tag = soup.find("div", {"data-testid": "info-plot-area"})
-        plot_area = int(plot_area_tag.dd.get_text(strip=True).replace("\xa0", "").replace(" m² (eiet)", "")) if plot_area_tag else None
+        plot_area = int(plot_area_tag.dd.get_text(strip=True).replace("\xa0", "").split()[0]) if plot_area_tag else None
 
         floot_tag = soup.find("div", {"data-testid": "info-floor"})
         floor_ = int(floot_tag.dd.get_text(strip=True)) if floot_tag else None
@@ -64,22 +64,28 @@ async def parse_ad_page(html_text):
         about_home = soup.find_all("div", {"class" : "description-area whitespace-pre-wrap"})
         about_home = " ".join([i.get_text(strip=True) for i in about_home]) if about_home else None
 
-        return {"title":title,
-                "location":location,
-                "price":price,
-                "property_type":property_type,
-                "nr_of_bedrooms":nr_of_bedrooms,
-                "nr_of_rooms":nr_of_rooms,
-                "primary_area":primary_area,
-                "usable_area":usable_area,
-                "plot_area":plot_area,
-                "floor":floor_,
-                "contruction_year":construction_year,
-                "renovated_year":renovated_year,
-                "energy_label":energy_label,
-                "facilities":facilities,
-                "about_home":about_home
-                }
+        if location:
+            return {
+                    "title":title,
+                    "location":location,
+                    "price":price,
+                    "property_type":property_type,
+                    "nr_of_bedrooms":nr_of_bedrooms,
+                    "nr_of_rooms":nr_of_rooms,
+                    "primary_area":primary_area,
+                    "usable_area":usable_area,
+                    "plot_area":plot_area,
+                    "floor":floor_,
+                    "contruction_year":construction_year,
+                    "renovated_year":renovated_year,
+                    "energy_label":energy_label,
+                    "facilities":facilities,
+                    "about_home":about_home
+                    }
+        else:
+            logger.warning(f"Parsing Ad page resulted in no location data")
+            return None
     
     except Exception as e:
         logger.error(f"Prasing failed for Ad page, Error: {str(e)[:1000]}")
+        return None

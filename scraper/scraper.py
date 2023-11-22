@@ -1,58 +1,79 @@
 import aiohttp
 import asyncio
-from parse_html import parse_search_page, parse_ad_page
-from logging_config import configure_logger
+from .parse_html import parse_search_page, parse_ad_page
+from ..logging_config.logging_config import configure_logger
+from .variables import SEARCH_URL_BASE, AD_URL_BASE, HEADERS, SEMAPHORE_PARAMETER, FETCH_URL_TIMEOUT, MAX_RETRIES
+
 
 logger = configure_logger(__name__)
 
-existing_ad_ids = []
+semaphore = asyncio.Semaphore(SEMAPHORE_PARAMETER)
 
-SEARCH_URL_BASE = "https://www.finn.no/realestate/homes/search.html?page="
-AD_URL_BASE = "https://www.finn.no/realestate/homes/ad.html?finnkode="
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
-    }
-MAX_NR_OF_SEARCH_PAGES = 1
 
-semaphore = asyncio.Semaphore(100)
-
-async def fetch_html(session, url):
+async def fetch_html(session, url, retries=MAX_RETRIES):
     async with semaphore:
-        async with session.get(url, headers=HEADERS) as response:
-            return await response.text()
-    
-
-async def process_url(session, url, parse_function):
-    logger.info((f"Processing data from URL: {url}"))
-    try:
-        html_text = await fetch_html(session, url)
-        return await parse_function(html_text)
-
-    except aiohttp.ClientError as e:
-        logger.error(f"Request failed for URL: {url}, Error: {e}")
+        for _ in range(retries):
+            try:
+                async with session.get(url, headers=HEADERS, timeout=FETCH_URL_TIMEOUT) as response:
+                    return await response.text()
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout occurred for URL: {url}. Retrying...")
+        logger.error(f"Max retries reached for URL: {url}. Skipping.")
         return None
 
 
-async def main(existing_ad_ids):
+async def process_url(session, url, parse_function):
+    logger.info(f"Processing data from URL: {url}")
+    html_text = await fetch_html(session, url)
+    
+    if html_text is not None:
+        try:
+            result = await parse_function(html_text)
+            logger.info(f"Processing completed for URL: {url}")
+            return result
+        except Exception as e:
+            logger.error(f"Error parsing HTML for URL: {url}, Error: {e}")
+    else:
+        logger.warning(f"HTML fetch failed for URL: {url}. Skipping.")
+    
+    return None
+
+
+async def main(existing_ad_ids, max_nr_of_search_pages):
+
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
-        search_tasks = [process_url(session, SEARCH_URL_BASE+str(page_nr+1), parse_search_page) 
-                        for page_nr in range(MAX_NR_OF_SEARCH_PAGES)]
+
+        search_tasks = [
+            asyncio.ensure_future(process_url(session, SEARCH_URL_BASE+str(page_nr+1), parse_search_page))
+            for page_nr in range(max_nr_of_search_pages)
+            ]
 
         ad_id_lists = await asyncio.gather(*search_tasks)
+        ad_ids = [ad_id for ad_id_list in ad_id_lists if ad_id_list for ad_id in ad_id_list]
 
-        ad_ids = [ad_id for ad_id_list in ad_id_lists for ad_id in ad_id_list]
+        logger.info(f"Obtained {len(ad_ids)} ad ids.")
+        logger.info(f"# of existing ad ids: {len(existing_ad_ids)}")
 
-        ad_tasks = [process_url(session, AD_URL_BASE+ad_id, parse_ad_page) 
-                    for ad_id in ad_ids[:20] if ad_id not in existing_ad_ids]  
+        new_ad_ids = [ad_id for ad_id in ad_ids if ad_id not in existing_ad_ids]
+        logger.info(f"# of new ad ids: {len(new_ad_ids)}")
+        ad_tasks = [
+            asyncio.ensure_future(process_url(session, AD_URL_BASE+ad_id, parse_ad_page))
+            for ad_id in new_ad_ids
+            ]  
 
         ad_data = await asyncio.gather(*ad_tasks)
+        ad_data = [result | {"ad_id":ad_id} for ad_id, result in zip(new_ad_ids, ad_data) if result]
+
+        logger.info(f"# of result rows: {len(ad_data)}")
 
     return ad_data
 
 
 
 if __name__ == "__main__":
-    results = asyncio.run(main(existing_ad_ids))
+    logger.info("Running local test!")
+
+    results = asyncio.run(main([],1))
     
     for result in results:
         with open("results.txt", "a+") as t:
