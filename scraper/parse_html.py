@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
-from ..logging_config.logging_config import configure_logger
+from logging_config import configure_logger
+from .variables import AD_URL_BASE
 
 logger = configure_logger(__name__)
 
@@ -7,11 +8,11 @@ logger = configure_logger(__name__)
 async def parse_search_page(html_text):
     try:
         soup = BeautifulSoup(html_text, "html.parser")
-        divs = soup.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['absolute'])
-        return [div["aria-owns"].split("-")[-1] for div in divs]
+        a_tags = soup.find_all("a", {"class":"sf-search-ad-link"})
+        return [str(a_tag["id"]) for a_tag in a_tags if AD_URL_BASE in a_tag["href"]]
     
     except Exception as e:
-        logger.error(f"Prasing failed for Search page, Error: {str(e)[:1000]}")
+        logger.error(f"Prasing failed for Search page, \nError: \n{str(e)[:1000]}")
 
 
 async def parse_ad_page(html_text):
@@ -19,7 +20,7 @@ async def parse_ad_page(html_text):
         soup = BeautifulSoup(html_text, "html.parser")
         
         title_tag = soup.find("h1")
-        title = soup.find("h1").get_text(strip=True) if soup.find("h1") else None
+        title = soup.find("h1").get_text(strip=True) if title_tag else None
 
         location_tag = soup.find("span", {"data-testid": "object-address"})
         location = location_tag.get_text(strip=True) if location_tag else None
@@ -62,7 +63,7 @@ async def parse_ad_page(html_text):
         facilities = [i.get_text(strip=True) for i in facilities] if facilities else None
 
         about_home = soup.find_all("div", {"class" : "description-area whitespace-pre-wrap"})
-        about_home = " ".join([i.get_text(strip=True) for i in about_home]) if about_home else None
+        about_home = " ".join([i.get_text(strip=True).replace("\xa0", "") for i in about_home]) if about_home else None
 
         if location:
             return {
@@ -87,5 +88,10 @@ async def parse_ad_page(html_text):
             return None
     
     except Exception as e:
-        logger.error(f"Prasing failed for Ad page, Error: {str(e)[:1000]}")
+        logger.error(f"Prasing failed for Ad page, \nError: \n{str(e)[:1000]}")
         return None
+    
+
+
+if __name__ == "__main__":
+    pass

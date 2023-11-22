@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 from .parse_html import parse_search_page, parse_ad_page
-from ..logging_config.logging_config import configure_logger
+from logging_config import configure_logger
 from .variables import SEARCH_URL_BASE, AD_URL_BASE, HEADERS, SEMAPHORE_PARAMETER, FETCH_URL_TIMEOUT, MAX_RETRIES
 
 
@@ -32,7 +32,7 @@ async def process_url(session, url, parse_function):
             logger.info(f"Processing completed for URL: {url}")
             return result
         except Exception as e:
-            logger.error(f"Error parsing HTML for URL: {url}, Error: {e}")
+            logger.error(f"Error parsing HTML for URL: {url}, \nError: \n{e}")
     else:
         logger.warning(f"HTML fetch failed for URL: {url}. Skipping.")
     
@@ -49,13 +49,13 @@ async def main(existing_ad_ids, max_nr_of_search_pages):
             ]
 
         ad_id_lists = await asyncio.gather(*search_tasks)
-        ad_ids = [ad_id for ad_id_list in ad_id_lists if ad_id_list for ad_id in ad_id_list]
+        ad_ids = [ad_id for ad_id_list in ad_id_lists for ad_id in ad_id_list]
 
         logger.info(f"Obtained {len(ad_ids)} ad ids.")
-        logger.info(f"# of existing ad ids: {len(existing_ad_ids)}")
+        logger.info(f"# existing ad ids: {len(existing_ad_ids)}")
 
         new_ad_ids = [ad_id for ad_id in ad_ids if ad_id not in existing_ad_ids]
-        logger.info(f"# of new ad ids: {len(new_ad_ids)}")
+        logger.info(f"# new ad ids: {len(new_ad_ids)}")
         ad_tasks = [
             asyncio.ensure_future(process_url(session, AD_URL_BASE+ad_id, parse_ad_page))
             for ad_id in new_ad_ids
@@ -64,7 +64,7 @@ async def main(existing_ad_ids, max_nr_of_search_pages):
         ad_data = await asyncio.gather(*ad_tasks)
         ad_data = [result | {"ad_id":ad_id} for ad_id, result in zip(new_ad_ids, ad_data) if result]
 
-        logger.info(f"# of result rows: {len(ad_data)}")
+        logger.info(f"# result rows: {len(ad_data)}")
 
     return ad_data
 
@@ -75,6 +75,4 @@ if __name__ == "__main__":
 
     results = asyncio.run(main([],1))
     
-    for result in results:
-        with open("results.txt", "a+") as t:
-            t.write(str(result)+" \n")
+    logger.info(f"Test data: \n{results[0]}")

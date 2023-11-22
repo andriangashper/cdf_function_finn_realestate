@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import BulkWriteError
 from .variables import MONGODB_CLUSTER_NAME, MONGODB_PASSWORD, MONGODB_USERNAME, MONGODB_COLLECTION_NAME, MONGODB_DATABASE_NAME
-from ..logging_config.logging_config import configure_logger
+from logging_config import configure_logger
 
 logger = configure_logger(__name__)
 
@@ -24,7 +24,7 @@ def insert_data(mongo_db, data):
       return True  
    
    except BulkWriteError as e:
-      logger.error(f"Error inserting data: {e}")
+      logger.error(f"Error inserting data: \n{e}")
       return False 
 
 
@@ -64,7 +64,4 @@ def delete_all_data(mongo_db):
 
 
 if __name__ == "__main__":   
-    logger.info("THIS IS A TEST!")
-    mongo = get_database()
-    #delete_all_data(mongo)
-    print(len(get_existing_ids(mongo)))
+    pass
