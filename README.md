@@ -1,8 +1,8 @@
-# Real Estate Data Scraper
+# Norwegian Real Estate Data Scraper
 
 ## Overview
 
-This project is a data engineering effort to scrape real estate data from [Finn.no](https://www.finn.no) and populate a MongoDB database. The primary goal is to gather data for later analysis and predictions in the field of real estate.
+This project is a data engineering effort to scrape Norwegian real estate data from [Finn.no](https://www.finn.no) and populate a MongoDB database. The primary goal is to gather data for later analysis and predictions in the field of real estate.
 
 ## Table of Contents
 
@@ -10,8 +10,7 @@ This project is a data engineering effort to scrape real estate data from [Finn.
 - [Dependencies](#dependencies)
 - [Usage](#usage)
 - [MongoDB Configuration](#mongodb-configuration)
-- [Logging](#logging)
-- [Local Test](#local-test)
+- [Example Analysis](#example-analysis)
 
 ## Project Structure
 
@@ -20,6 +19,7 @@ The project is organized into three main files:
 - **main_pipeline.py**: Contains the main functionality to orchestrate the data scraping process.
 - **scraper.scraper.py**: Implements the web scraping logic using asynchronous methods.
 - **data.data_management.py**: Manages the MongoDB connection and provides functions for data insertion, retrieval, and manipulation.
+- **analysis.ipynb**: Example of analysis one can do with the scraped data. 
 
 ## Dependencies
 
@@ -53,3 +53,8 @@ To ensure the seamless functionality of the MongoDB connection string, create a 
 - MONGODB_PASSWORD 
 - MONGODB_COLLECTION_NAME
 - MONGODB_DATABASE_NAME 
+
+## Example Analysis
+
+In this repo you can find in the **analysis.ipynb** file some examples of analysis one can do with the scraped data.
+Note that here I used PySpark for personal learning purposes. 

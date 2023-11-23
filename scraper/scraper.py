@@ -49,7 +49,12 @@ async def main(existing_ad_ids, max_nr_of_search_pages):
             ]
 
         ad_id_lists = await asyncio.gather(*search_tasks)
-        ad_ids = [ad_id for ad_id_list in ad_id_lists for ad_id in ad_id_list]
+        ad_ids = []
+        for ad_id_list in ad_id_lists:
+            for ad_id in ad_id_list:
+                if ad_id not in ad_ids:
+                    ad_ids.append(ad_id)
+
 
         logger.info(f"Obtained {len(ad_ids)} ad ids.")
         logger.info(f"# existing ad ids: {len(existing_ad_ids)}")

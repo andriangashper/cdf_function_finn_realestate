@@ -29,4 +29,4 @@ def main(nr_of_pages):
 
 
 if __name__ == "__main__":
-    main(nr_of_pages=1)
+    main(nr_of_pages=100)

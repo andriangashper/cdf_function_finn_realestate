@@ -77,7 +77,7 @@ async def parse_ad_page(html_text):
                     "usable_area":usable_area,
                     "plot_area":plot_area,
                     "floor":floor_,
-                    "contruction_year":construction_year,
+                    "construction_year":construction_year,
                     "renovated_year":renovated_year,
                     "energy_label":energy_label,
                     "facilities":facilities,

@@ -64,4 +64,6 @@ def delete_all_data(mongo_db):
 
 
 if __name__ == "__main__":   
+    mongo_db = get_database()
+    delete_all_data(mongo_db)
     pass
