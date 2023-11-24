@@ -58,3 +58,8 @@ To ensure the seamless functionality of the MongoDB connection string, create a 
 
 In this repo you can find in the **analysis.ipynb** file some examples of analysis one can do with the scraped data.
 Note that here I used PySpark for personal learning purposes. 
+
+## Extra
+
+If you are interested in the data only and/or do not want to go through the troubles of setting up MongoDB and scraping the data yourself, you can find the dataset publicly available here:
+[Kaggle](https://www.kaggle.com/datasets/gasperandrian/norwegian-real-estate-ad-scraped-data-from-finn-no)

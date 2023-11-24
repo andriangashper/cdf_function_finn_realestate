@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 from .parse_html import parse_search_page, parse_ad_page
 from logging_config import configure_logger
-from .variables import SEARCH_URL_BASE, AD_URL_BASE, HEADERS, SEMAPHORE_PARAMETER, FETCH_URL_TIMEOUT, MAX_RETRIES
+from .variables import search_url, AD_URL_BASE, HEADERS, SEMAPHORE_PARAMETER, FETCH_URL_TIMEOUT, MAX_RETRIES
 
 
 logger = configure_logger(__name__)
@@ -39,13 +39,13 @@ async def process_url(session, url, parse_function):
     return None
 
 
-async def main(existing_ad_ids, max_nr_of_search_pages):
+async def main(existing_ad_ids, max_nr_of_search_pages, price_from, price_to):
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
 
         search_tasks = [
-            asyncio.ensure_future(process_url(session, SEARCH_URL_BASE+str(page_nr+1), parse_search_page))
-            for page_nr in range(max_nr_of_search_pages)
+            asyncio.ensure_future(process_url(session, search_url(page_nr, price_from, price_to), parse_search_page))
+            for page_nr in range(1, max_nr_of_search_pages+1)
             ]
 
         ad_id_lists = await asyncio.gather(*search_tasks)

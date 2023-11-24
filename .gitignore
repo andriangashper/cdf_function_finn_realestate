@@ -5,3 +5,5 @@ __pycache__/
 *.pkl
 workspace.py
 workspace.ipynb
+data_to_csv.py
+*.csv
