@@ -5,3 +5,4 @@ logs
 *.pkl
 *.csv
 .env
+test.py

@@ -7,10 +7,9 @@ from .variables import search_url, AD_URL_BASE, HEADERS, SEMAPHORE_PARAMETER, FE
 
 logger = configure_logger(__name__)
 
-semaphore = asyncio.Semaphore(SEMAPHORE_PARAMETER)
-
 
 async def fetch_html(session, url, retries=MAX_RETRIES):
+    semaphore = asyncio.Semaphore(SEMAPHORE_PARAMETER) 
     async with semaphore:
         for _ in range(retries):
             try:
