@@ -1,9 +1,7 @@
+__pycache__/
+venv/
 logs
 *.log
-.env
-__pycache__/
 *.pkl
-workspace.py
-workspace.ipynb
-data_to_csv.py
 *.csv
+.env
