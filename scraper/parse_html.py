@@ -1,8 +1,6 @@
 from bs4 import BeautifulSoup
-from logging_config import configure_logger
 from .variables import AD_URL_BASE
 
-logger = configure_logger(__name__)
 
 
 async def parse_search_page(html_text):
@@ -12,7 +10,7 @@ async def parse_search_page(html_text):
         return [str(a_tag["id"]) for a_tag in a_tags if AD_URL_BASE in a_tag["href"]]
     
     except Exception as e:
-        logger.error(f"Prasing failed for Search page, \nError: \n{str(e)[:1000]}")
+        print(f"Prasing failed for Search page, \nError: \n{str(e)[:1000]}")
 
 
 async def parse_ad_page(html_text):
@@ -84,11 +82,11 @@ async def parse_ad_page(html_text):
                     "about_home":about_home
                     }
         else:
-            logger.warning(f"Parsing Ad page resulted in no location data")
+            print(f"Parsing Ad page resulted in no location data")
             return None
     
     except Exception as e:
-        logger.error(f"Prasing failed for Ad page, \nError: \n{str(e)[:1000]}")
+        print(f"Prasing failed for Ad page, \nError: \n{str(e)[:1000]}")
         return None
     
 

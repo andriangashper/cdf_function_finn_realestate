@@ -1,25 +1,21 @@
 import asyncio
 import pandas as pd
-import traceback
+import time
 from cognite.client import CogniteClient
 from authenticate import client as c
 from scraper import scraper
-from logging_config import configure_logger
 from variables import DATABASE_NAME, TABLE_NAME, ID_COLUMN_NAME
-from variables import PRICE_MAX_MAX, PRICE_MAX_MIN, PRICE_MIN_MAX, PRICE_MIN_MIN, PRICE_STEP, PRICE_CEILING
-
-
-logger = configure_logger(__name__)
+from variables import PRICE_MAX_MAX, PRICE_MAX_MIN, PRICE_MIN_MAX, PRICE_MIN_MIN, PRICE_STEP, PRICE_CEILING, TIMEOUT_TIME, MAX_NR_OF_PAGES
 
 
 def initialize_raw(client):
     dbs = client.raw.databases.list(limit=-1).to_pandas()
     if dbs.empty or DATABASE_NAME not in dbs.name.values.tolist():                        
-        logger.info(client.raw.databases.create(DATABASE_NAME))
+        print(client.raw.databases.create(DATABASE_NAME))
     
     tables = client.raw.tables.list(DATABASE_NAME, limit=-1).to_pandas()
     if tables.empty or TABLE_NAME not in tables.name.values.tolist():
-        logger.info(client.raw.tables.create(DATABASE_NAME, TABLE_NAME))
+        print(client.raw.tables.create(DATABASE_NAME, TABLE_NAME))
 
 
 def main(client, nr_of_pages, price_from, price_to):
@@ -28,11 +24,19 @@ def main(client, nr_of_pages, price_from, price_to):
 
     scraped_data = asyncio.run(scraper.main(existing_ids_start, nr_of_pages, price_from, price_to))
 
-    client.raw.rows.insert_dataframe(DATABASE_NAME, TABLE_NAME, pd.DataFrame(scraped_data).fillna('NaN').set_index(ID_COLUMN_NAME))
+    if scraped_data:
+        df = pd.DataFrame(scraped_data).fillna('NaN')
+        if ID_COLUMN_NAME in df.columns:
+            df = df.set_index(ID_COLUMN_NAME)
+            client.raw.rows.insert_dataframe(DATABASE_NAME, TABLE_NAME, df)
+        else:
+            print(f"Column '{ID_COLUMN_NAME}' not found in scraped data.")
+    else:
+        print("No data scraped.")
 
     existing_ids_end = client.raw.rows.list(DATABASE_NAME, TABLE_NAME, limit=-1).to_pandas().index.values.tolist()
 
-    logger.info(
+    print(
         f'''\n
         price_from:            {price_from}, \n
         price_to:              {price_to}, \n
@@ -41,9 +45,12 @@ def main(client, nr_of_pages, price_from, price_to):
         # data results:        {len(scraped_data)} \n 
         '''
         )
+    
+    return len(scraped_data)
 
 
 def handle(client: CogniteClient):
+    start_time = time.time()
 
     initialize_raw(client)
 
@@ -51,13 +58,13 @@ def handle(client: CogniteClient):
     prices_max = [i for i in range(PRICE_MAX_MIN, PRICE_MAX_MAX, PRICE_STEP)]
     price_ranges = [(from_, to_) for from_, to_ in zip(prices_min, prices_max)] + [(PRICE_MAX_MAX, PRICE_CEILING)]
 
+    len_scraped_data = 0
     for range_ in price_ranges:
-        try:
-            main(client, nr_of_pages=51, price_from=range_[0], price_to=range_[1])
-       
-        except Exception as e:
-            logger.error(f"Error on range: {range_}\n Error message:\n {e}")
-            traceback.print_exc()
+        if time.time() - start_time > TIMEOUT_TIME:
+            break   
+        len_scraped_data += main(client, nr_of_pages=MAX_NR_OF_PAGES, price_from=range_[0], price_to=range_[1])
+
+    return len_scraped_data
 
 
 
