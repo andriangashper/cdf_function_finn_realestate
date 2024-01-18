@@ -2,7 +2,6 @@ import asyncio
 import pandas as pd
 import time
 from cognite.client import CogniteClient
-from authenticate import client as c
 from scraper import scraper
 from variables import DATABASE_NAME, TABLE_NAME, ID_COLUMN_NAME
 from variables import PRICE_MAX_MAX, PRICE_MAX_MIN, PRICE_MIN_MAX, PRICE_MIN_MIN, PRICE_STEP, PRICE_CEILING, TIMEOUT_TIME, MAX_NR_OF_PAGES
@@ -65,7 +64,7 @@ def handle(client: CogniteClient):
         if time.time() - start_time > TIMEOUT_TIME:
             print(f"Timeout time reached. Scraped {len_scraped_data} rows.")
             break   
-        
+
         len_scraped_data += main(client, nr_of_pages=MAX_NR_OF_PAGES, price_from=range_[0], price_to=range_[1])
 
     return len_scraped_data
@@ -73,4 +72,5 @@ def handle(client: CogniteClient):
 
 
 if __name__ == "__main__":
+    from authenticate import client as c
     handle(c)
