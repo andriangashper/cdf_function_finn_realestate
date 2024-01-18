@@ -19,8 +19,8 @@ if __name__ == "__main__":
     print(f"Created function with external_id: {FUNCTION_EXTERNAL_ID}")
     
     schedule = client.functions.schedules.create(
-        name="run-every-day",
-        cron_expression="0 0 * * *",
+        name="run-every-hour",
+        cron_expression="0 * * * *",
         function_id=func.id,
         )
     print(f"Created schedule for function with external_id: {FUNCTION_EXTERNAL_ID}")
