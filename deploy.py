@@ -1,5 +1,5 @@
 from authenticate import client
-from variables import FUNCTION_NAME, FUNCTION_EXTERNAL_ID
+from variables import FUNCTION_NAME, FUNCTION_DESCRIPTION, FUNCTION_EXTERNAL_ID, FUNCTION_FOLDER, FUNCTION_RUNTIME, FUNCTION_SCHEDULE_NAME, FUNCTION_SCHEDULE
 
 
 if __name__ == "__main__":
@@ -12,15 +12,15 @@ if __name__ == "__main__":
     func = client.functions.create(
         name=FUNCTION_NAME,
         external_id=FUNCTION_EXTERNAL_ID,
-        folder=".",
-        description="Scrape finn realestate data",
-        runtime="py311",
+        folder=FUNCTION_FOLDER,
+        description=FUNCTION_DESCRIPTION,
+        runtime=FUNCTION_RUNTIME,
         )
     print(f"Created function with external_id: {FUNCTION_EXTERNAL_ID}")
     
     schedule = client.functions.schedules.create(
-        name="run-every-hour",
-        cron_expression="0 * * * *",
+        name=FUNCTION_SCHEDULE_NAME,
+        cron_expression=FUNCTION_SCHEDULE,
         function_id=func.id,
         )
     print(f"Created schedule for function with external_id: {FUNCTION_EXTERNAL_ID}")

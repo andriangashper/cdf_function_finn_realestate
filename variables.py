@@ -16,6 +16,11 @@ ID_COLUMN_NAME = "ad_id"
 
 FUNCTION_NAME = "scrape_finn_realestate_data"
 FUNCTION_EXTERNAL_ID = "fn_001_scrape_finn_realestate_data"
+FUNCTION_DESCRIPTION = "Scrape finn realestate data"
+FUNCTION_FOLDER = "."
+FUNCTION_RUNTIME = "py311"
+FUNCTION_SCHEDULE_NAME = "run-every-hour"
+FUNCTION_SCHEDULE = "0 */2 * * *"
 
 PRICE_MIN_MIN = 0
 PRICE_MIN_MAX = 20000000

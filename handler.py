@@ -1,6 +1,7 @@
 import asyncio
 import pandas as pd
 import time
+from datetime import datetime
 from cognite.client import CogniteClient
 from scraper import scraper
 from variables import DATABASE_NAME, TABLE_NAME, ID_COLUMN_NAME
@@ -28,6 +29,7 @@ def main(client, nr_of_pages, price_from, price_to):
         df = pd.DataFrame(scraped_data).fillna('NaN')
         if ID_COLUMN_NAME in df.columns:
             df = df.set_index(ID_COLUMN_NAME)
+            df["Date"] = str(datetime.now().date())
             client.raw.rows.insert_dataframe(DATABASE_NAME, TABLE_NAME, df)
         else:
             print(f"Column '{ID_COLUMN_NAME}' not found in scraped data.")
